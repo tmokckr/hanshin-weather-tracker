@@ -1,0 +1,41 @@
+name: 阪神戦データ更新
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # 6時間ごと(UTC) = 日本時間 3:00/9:00/15:00/21:00頃
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Scrape schedule & results
+        run: python src/scrape_schedule.py
+
+      - name: Fetch weather (forecast + actual)
+        env:
+          OWM_API_KEY: ${{ secrets.OWM_API_KEY }}
+        run: python src/fetch_weather.py
+
+      - name: Build static site
+        run: python src/build_site.py
+
+      - name: Commit & push if changed
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: 自動更新 (schedule/weather)"
+          file_pattern: "data/tracker.db docs/**"
