@@ -34,8 +34,8 @@ def sky_to_icon(sky: str | None) -> str:
         return "❄️"
     if "雨" in sky:
         return "🌧️" if "強" in sky or "本" in sky else "🌦️"
-    if "曇" in sky:
-        return "☁️" if "本" in sky else "⛅"
+    if "曇" in sky or "雲" in sky:
+        return "☁️" if ("本" in sky or "厚い" in sky) else "⛅"
     if "晴" in sky:
         return "☀️" if "快" in sky else "🌤️"
     return "🌡️"
